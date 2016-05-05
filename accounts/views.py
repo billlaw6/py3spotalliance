@@ -6,7 +6,10 @@ from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+
 from accounts.models import User
+from accounts.forms import UserForm
 
 # Create your views here.
 
@@ -45,17 +48,36 @@ class AjaxableResponseMixin(object):
             return response
 
 
-#class IndexView(LoginRequiredMixin, View):
-#class IndexView(AjaxableResponseMixin, View):
-class IndexView(View):
-    view_name = 'User Index View'
-    # 不能直接将函数装饰器用在方法上，必须使用method_decorator转为方法装饰器
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(IndexView, self).dispatch(*args, **kwargs)
+#class MyView(LoginRequiredMixin, View):
+class MyView(AjaxableResponseMixin, View):
+    """
+    Test View show how to extends from basic View
+    """
+    message = 'I am class-based view subclassing View'
+    #form_class = MyForm
+    initial = {'key': 'value'}
 
-    def get(self, request, *args, **kwargs):
-        return HttpResponse('This is user index view. %s' % self.view_name)
+    def get(self, request):
+        return HttpResponse('Response Message for get request from MyView: %s' % self.message)
+
+    def post(self, request):
+        return HttpResponse('Response Message for post request from MyView: %s' % self.message)
+
+class IndexView(TemplateView):
+    page_title = _('Index View')
+    template_name = 'accounts/index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        context['page_title'] = self.page_title
+        return context
+
+
+class UserCreate(AjaxableResponseMixin, CreateView):
+    template_name = 'accounts/login.html'
+    model = User
+    form_class = UserForm
+    success_url = reverse_lazy('')
 
 
 class UserList(ListView):
@@ -64,9 +86,9 @@ class UserList(ListView):
     context_object_name = 'object_list'
     queryset = User.objects.all()
 
-    #@method_decorator(login_required)
-    #def dispatch(self, *args, **kwargs):
-    #    return super(UserList, self).dispatch(*args, **kwargs)
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UserList, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -92,14 +114,8 @@ class UserDetail(DetailView):
     def get_object(self):
         # Call the superclass
         object = super(UserDetailView, self).get_object()
-        # 自定义处理
+        # 自定义处理，比如记录对象被访问时间
         return object
-
-
-class UserCreate(AjaxableResponseMixin, CreateView):
-    model = User
-    fields = ['username',]
-    success_url = reverse_lazy('')
 
 
 class UserUpdate(AjaxableResponseMixin, UpdateView):

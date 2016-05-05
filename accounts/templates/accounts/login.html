@@ -1,21 +1,35 @@
-{% load browserid %}
-<html>
-    <head>
-        {% browserid_css %}
-    </head>
-    <body>
-        {% browserid_info %}
-        {% if user.is_authenticated %}
-            <p>Current user: {{ user.email }}</p>
-            {% browserid_logout text='Logout' %}
-        {% else %}
-            {% browserid_login text="Login" color='dark' %}
-        {% endif %}
+{% extends "common/base-bootstrap.html" %}
 
-        <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-        {% browserid_js %}
-    </body>
-</html>
+{% load staticfiles %}
 
 
+{% block content %}
+<div class="container-fluid">
+    <h3>Login in</h3>
+    <form id="id_form_login" action="{% url 'accounts:user_add' %}"
+        method="POST" class="form-horizontal" role="form">
+        {% csrf_token %}
+        <div class="errorlist nonfield">
+            {{ form.non_field_errors }} 
+        </div>
+        {% for field in form %}
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="{{ field.id_for_label
+                }}">{{ field.label_tag }}</label>
+            <div class="col-sm-9">
+                {% if field.errors %}
+                <ol>
+                    {% for error in field.errors %}
+                    <li><strong>{{ error|escape }}</strong></li>
+                    {% endfor %}
+                </ol>
+                {% endif %}
+                {{ field }}
+                {{ field.help_text }}
+            </div><!-- class="col-sm-9"-->
+        </div><!-- class="form-group" -->
+        {% endfor %}
+    </form>
 
+</div><!-- class="container-fluid" -->
+{% endblock %}

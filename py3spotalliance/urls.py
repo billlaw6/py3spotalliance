@@ -19,5 +19,4 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('accounts.urls', namespace='accounts', app_name='accounts')),
-    url(r'', include('django_browserid.urls')),
 ]

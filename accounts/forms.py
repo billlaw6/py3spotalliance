@@ -17,54 +17,41 @@ from accounts.models import User
 
 
 class UserForm(forms.ModelForm):
-    username = forms.CharField( 
-        label=_('username'),
-        required=True, 
-        widget=forms.TextInput(attrs={'class':'form-control'})
-    )
-    quantity = forms.DecimalField(
-        label=_('quantity'), 
-        min_value=0, 
-        required=True, 
-        widget=forms.NumberInput(attrs = {'size':2, 'class':'form-control','step':0.01, 'maxlength':5,'placeholder':_('quantity')}), 
-        error_messages={'invalid':_('Please enter a valid quantity.')}
-    )
-    price = forms.DecimalField(
-        label=_('price'), 
-        min_value=0, 
-        required=False, 
-        widget=forms.NumberInput(attrs = {'size':2, 'class':'form-control','step':0.01, 'maxlength':5, 'placeholder':_('price')}), 
-        error_messages={'invalid':_('Please enter a valid price.')}
-    )
-    sum_price = forms.DecimalField(
-        label=_('sum_price'), 
-        min_value=0, 
-        required=True, 
-        widget=forms.NumberInput(attrs = {'size':2, 'class':'form-control','step':0.01, 'maxlength':9,'placeholder': '小计'}), 
-        error_messages={'invalid':_('Please enter a valid price')}
-    )
-    description = forms.CharField(
-        label=_('description'), 
-        label_suffix=':', 
-        required=False, 
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('description')}), 
-        help_text=_('help text')
-    )
     class Meta:
         model = User
-        fields = ['username', 'password',]
-        exclude = ['data_joined',]
+        fields = ['username', 'password', ]
+        # 使用model构建form尽量使用下面的widgets参数，这样能继承model中已有的属性，如help_text, max_length等
+        widgets = {
+            'username': forms.TextInput(attrs={'class':'form-control'}),
+            'password': forms.TextInput(attrs={'class':'form-control'}),
+        }
 
     #override the default __init__ so we can set the request
-    def __init__(self, request, *args, **kwargs):
+    def __init__(self, request=None, *args, **kwargs):
         self.request = request
         super(UserForm, self).__init__(*args, **kwargs)
 
-    # custom validation to check for cookies
     def clean(self):
-        if self.request:
-            if not self.request.session.test_cookie_worked():
-                raise forms.ValidationError(_('Cookies must be enabled.'))
+        super(UserForm, self).clear()
+        return self.cleaned_data
+
+
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'password', ]
+        # 使用model构建form尽量使用下面的widgets参数，这样能继承model中已有的属性，如help_text, max_length等
+        widgets = {
+            'username': forms.TextInput(attrs={'class':'form-control'}),
+            'password': forms.TextInput(attrs={'class':'form-control'}),
+        }
+
+    #override the default __init__ so we can set the request
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        super(UserForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
         super(UserForm, self).clear()
         return self.cleaned_data
 
